@@ -11,10 +11,12 @@
 		_EmissionMap ("Emission", 2D) = "black" {}
 		_EmissionColor ("Emission Color", Color) = (0,0,0,0)
 		_AlphaCutoff ("Alpha Cutoff", Range(0,1)) = 0
+		[Enum(UnityEngine.Rendering.CullMode)]_Cull("Cull Mode",Float)=2
 	}
 	SubShader {
 		Tags { "RenderType"="Opaque" }
 		LOD 200
+		Cull [_Cull]
 
 		CGPROGRAM
 		// Physically based Standard lighting model, and enable shadows on all light types

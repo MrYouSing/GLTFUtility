@@ -10,10 +10,12 @@
 		_OcclusionMap ("Occlusion", 2D) = "white" {}
 		_EmissionMap ("Emission", 2D) = "black" {}
 		_EmissionColor ("Emission Color", Color) = (0,0,0,0)
+		[Enum(UnityEngine.Rendering.CullMode)]_Cull("Cull Mode",Float)=2
 	}
 	SubShader {
 		Tags { "RenderType"="Transparent" "Queue"="Transparent" }
 		LOD 200
+		Cull [_Cull]
 
 		CGPROGRAM
 		// Physically based StandardSpecular lighting model, and enable shadows on all light types

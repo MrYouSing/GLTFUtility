@@ -38,6 +38,19 @@ namespace Siccity.GLTFUtility {
 		public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, ShaderSettings shaderSettings, Action<Material> onFinish) {
 			Material mat = null;
 			IEnumerator en = null;
+			// See also https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_materials_unlit/README.md#extension-compatibility-and-fallback-materials
+			bool unlit=extensions!=null&&extensions.KHR_materials_unlit!=null;
+			if(unlit) {
+				if(pbrMetallicRoughness!=null) {
+					pbrMetallicRoughness.metallicFactor=0.0f;
+					pbrMetallicRoughness.roughnessFactor=0.9f;
+					pbrMetallicRoughness.metallicRoughnessTexture=null;
+				}
+				emissiveFactor=Color.black;
+				occlusionTexture=null;
+				emissiveTexture=null;
+				normalTexture=null;
+			}
 			// Load metallic-roughness materials
 			if (pbrMetallicRoughness != null) {
 				en = pbrMetallicRoughness.CreateMaterial(textures, alphaMode, shaderSettings, x => mat = x);
@@ -50,6 +63,17 @@ namespace Siccity.GLTFUtility {
 			}
 			// Load fallback material
 			else mat = new Material(Shader.Find("Standard"));
+			// Override the material
+			if(mat!=null) {
+				if(unlit) {// Load unlit shader
+					Shader sh=Shader.Find("GLTFUtility/Unlit/"+(alphaMode==AlphaMode.BLEND?"Blend":"Opaque"));
+					if(sh!=null) {mat.shader=sh;}
+				}
+				int id=Shader.PropertyToID("_Cull");
+				if(mat.HasProperty(id)) {// Implement DoubleSided
+					mat.SetFloat(id,(int)(doubleSided?CullMode.Off:CullMode.Back));
+				}
+			}
 			// Normal texture
 			if (normalTexture != null) {
 				en = TryGetTexture(textures, normalTexture, true, tex => {
@@ -122,6 +146,7 @@ namespace Siccity.GLTFUtility {
 
 		[Preserve] public class Extensions {
 			public PbrSpecularGlossiness KHR_materials_pbrSpecularGlossiness = null;
+			public object KHR_materials_unlit = null;
 		}
 
 		// https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#pbrmetallicroughness
